@@ -19,45 +19,45 @@ auto lightButton = ButtonController(BUTTON_TOGGLE_LIGHT, switchLightStripIntensi
 uint8_t lightStripIntencity = 64;
 void ledStripOnRpmUpdate(uint16_t rpm)
 {
-  static uint16_t rpmLerped = rpm;
-  rpmLerped = rpmLerped + (rpm >> 3) - (rpmLerped >> 3);
+    static uint16_t rpmLerped = rpm;
+    rpmLerped = rpmLerped + (rpm >> 3) - (rpmLerped >> 3);
 
-  uint8_t hue = map(rpmLerped, 200, 1900, 0, 255);
-  CHSV hsv = CHSV(hue, 255, lightStripIntencity);
-  for (int i = 0; i < LED_STRIP_LENGTH; i++)
-    ledStrip.setColor(i, CRGB(hsv));
-  ledStrip.Show();
+    uint8_t hue = map(rpmLerped, 200, 1900, 0, 255);
+    CHSV hsv = CHSV(hue, 255, lightStripIntencity);
+    for (int i = 0; i < LED_STRIP_LENGTH; i++)
+        ledStrip.setColor(i, CRGB(hsv));
+    ledStrip.Show();
 
-  Serial.print("Rpm: ");
-  Serial.println(rpm);
-  Serial.print("RpmLerped: ");
-  Serial.println(rpmLerped);
+    Serial.print("Rpm: ");
+    Serial.println(rpm);
+    Serial.print("RpmLerped: ");
+    Serial.println(rpmLerped);
 }
 void setFanState(bool state)
 {
-  if (state)
-  {
-    ledController.turnOn();
-    fanController.setPower(255);
-  }
-  else
-  {
-    ledController.turnOff();
-    fanController.setPower(0);
-  }
+    if (state)
+    {
+        ledController.turnOn();
+        fanController.setPower(255);
+    }
+    else
+    {
+        ledController.turnOff();
+        fanController.setPower(0);
+    }
 }
 void switchLightStripIntensity()
 {
-  lightStripIntencity += 32;
+    lightStripIntencity += 32;
 }
 
 void setup()
 {
-  Serial.begin(1000000);
+    Serial.begin(1000000);
 }
 
 void loop()
 {
-  fanButton.Tick();
-  lightButton.Tick();
+    fanButton.Tick();
+    lightButton.Tick();
 }

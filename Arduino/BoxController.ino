@@ -115,6 +115,7 @@ void ledDecrement()
 
 void setup()
 {
+    ledStrip.setBrightness(32);
     Serial.begin(1000000);
 }
 

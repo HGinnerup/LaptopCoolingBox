@@ -2,11 +2,12 @@
 
 #include "BoxController.h"
 
-template <pin pinId>
 class LedController {
+    pin pinId;
     public:
-        LedController() {
+        LedController(pin pinId) {
             pinMode(pinId, OUTPUT);
+            this->pinId = pinId;
         }
         void turnOn() { digitalWrite(pinId, HIGH); }
         void turnOff() { digitalWrite(pinId, LOW); }

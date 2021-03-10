@@ -30,7 +30,7 @@ public:
     {
         //FastLED.showColor(color);
         for (int i = 0; i < ledCount; i++)
-            ledStrip.setColor(i, CRGB(hsv));
+            setColor(i, color);
     }
     void setColor(int index, CRGB color)
     {

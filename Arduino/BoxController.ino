@@ -1,54 +1,109 @@
 #include "headers/BoxController.h"
 
+#define DEBUG
+
 #define FAN_READ_PIN 3
 #define FAN_WRITE_PIN 4
-#define BUTTON_TOGGLE_FANS 5
-#define BUTTON_TOGGLE_LIGHT 6
-#define LED_STRIP_PIN 7
-#define LED_STRIP_LENGTH 50
 
-auto ledStrip = LedStripController<LED_STRIP_PIN, LED_STRIP_LENGTH>();
+#define LED_STRIP_PIN 5
+#define LED_STRIP_LENGTH 23
+#define LED_BUTTON_MODE_PIN 7
+#define LED_BUTTON_INCREMENT_PIN 6
+#define LED_BUTTON_DECREMENT_PIN 8
+
+#define FAN_BUTTON_MODE_PIN 10
+#define FAN_BUTTON_INCREMENT_PIN 9
+#define FAN_BUTTON_DECREMENT_PIN 11
+
+#ifdef DEBUG
+    #define DEBUG_PRINT_BUTTON
+#endif
+
+
 void ledStripOnRpmUpdate(uint16_t rpm);
 auto fanController = FanController<FAN_READ_PIN, FAN_WRITE_PIN, ledStripOnRpmUpdate>(0);
-auto ledController = LedController(LED_BUILTIN);
-void setFanState(bool state);
-auto fanButton = ButtonController(BUTTON_TOGGLE_FANS, nullptr, setFanState);
-void switchLightStripIntensity();
-auto lightButton = ButtonController(BUTTON_TOGGLE_LIGHT, switchLightStripIntensity, nullptr);
 
-uint8_t lightStripIntencity = 64;
+void fanModeIterate();
+auto fanButtonMode = ButtonController(FAN_BUTTON_MODE_PIN, fanModeIterate, nullptr);
+void fanIncrement();
+auto fanButtonIncrement = ButtonController(FAN_BUTTON_INCREMENT_PIN, fanIncrement, nullptr);
+void fanDecrement();
+auto fanButtonDecrement = ButtonController(FAN_BUTTON_DECREMENT_PIN, fanDecrement, nullptr);
+
+auto ledStrip = LedStripController<LED_STRIP_PIN, LED_STRIP_LENGTH>();
+
+void ledModeIterate();
+auto ledButtonMode = ButtonController(LED_BUTTON_MODE_PIN, ledModeIterate, nullptr);
+void ledIncrement();
+auto ledButtonIncrement = ButtonController(LED_BUTTON_INCREMENT_PIN, ledIncrement, nullptr);
+void ledDecrement();
+auto ledButtonDecrement = ButtonController(LED_BUTTON_DECREMENT_PIN, ledDecrement, nullptr);
+
+auto ledBuiltin = LedController(LED_BUILTIN);
+
+// Function Implementations
 void ledStripOnRpmUpdate(uint16_t rpm)
 {
     static uint16_t rpmLerped = rpm;
     rpmLerped = rpmLerped + (rpm >> 3) - (rpmLerped >> 3);
 
     uint8_t hue = map(rpmLerped, 200, 1900, 0, 255);
-    CHSV hsv = CHSV(hue, 255, lightStripIntencity);
-    for (int i = 0; i < LED_STRIP_LENGTH; i++)
-        ledStrip.setColor(i, CRGB(hsv));
-    ledStrip.Show();
+    CHSV hsv = CHSV(hue, 255, 255);
 
-    Serial.print("Rpm: ");
-    Serial.println(rpm);
-    Serial.print("RpmLerped: ");
-    Serial.println(rpmLerped);
+    ledStrip.setColor(CRGB(hsv));
+    ledStrip.Show();
 }
-void setFanState(bool state)
+
+void fanModeIterate() {}
+void fanIncrement()
 {
-    if (state)
-    {
-        ledController.turnOn();
-        fanController.setPower(255);
-    }
+    uint8_t currentPower = fanController.getPowerTarget();
+    if (currentPower < 255-32)
+        fanController.setPower(currentPower + 32);
     else
-    {
-        ledController.turnOff();
-        fanController.setPower(0);
-    }
+        fanController.setPower(255);
+    #ifdef DEBUG_PRINT_BUTTON
+        Serial.print("FanPowerIncrementTo: ");
+        Serial.println(fanController.getPowerTarget());
+    #endif
 }
-void switchLightStripIntensity()
+void fanDecrement()
 {
-    lightStripIntencity += 32;
+    uint8_t currentPower = fanController.getPowerTarget();
+    if (currentPower > 32)
+        fanController.setPower(currentPower - 32);
+    else
+        fanController.setPower(0);
+    #ifdef DEBUG_PRINT_BUTTON
+        Serial.print("FanPowerDecrementTo: ");
+        Serial.println(fanController.getPowerTarget());
+    #endif
+}
+
+void ledModeIterate() {}
+void ledIncrement()
+{
+    uint8_t currentPower = ledStrip.getBrightness();
+    if (currentPower < 255-32)
+        ledStrip.setBrightness(currentPower + 32);
+    else
+        ledStrip.setBrightness(255);
+    #ifdef DEBUG_PRINT_BUTTON
+        Serial.print("LedPowerIncrementTo: ");
+        Serial.println(ledStrip.getBrightness());
+    #endif
+}
+void ledDecrement()
+{
+    uint8_t currentPower = ledStrip.getBrightness();
+    if (currentPower > 32)
+        ledStrip.setBrightness(currentPower - 32);
+    else
+        ledStrip.setBrightness(0);
+    #ifdef DEBUG_PRINT_BUTTON
+        Serial.print("LedPowerDecrementTo: ");
+        Serial.println(ledStrip.getBrightness());
+    #endif
 }
 
 void setup()
@@ -58,6 +113,11 @@ void setup()
 
 void loop()
 {
-    fanButton.Tick();
-    lightButton.Tick();
+    fanButtonMode.Tick();
+    fanButtonIncrement.Tick();
+    fanButtonDecrement.Tick();
+
+    ledButtonMode.Tick();
+    ledButtonIncrement.Tick();
+    ledButtonDecrement.Tick();
 }

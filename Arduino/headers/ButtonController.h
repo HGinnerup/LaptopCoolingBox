@@ -2,40 +2,102 @@
 
 #include "BoxController.h"
 
-template <pin pinId, void (*onButtonPush)(), void (*onButtonToggle)(bool state)>
+#define DEBOUNCE_MILLIS 50
+
 class ButtonController
 {
-    static bool isToggled;
+    pin pinId;
+    bool isToggled;
+    bool awaitingDebounce;
+    uint32_t debounceMillis;
+    bool isCurrentlyClicked;
 
-    static void _onButtonPush() {
-        if(onButtonPush != nullptr)
+    void (*onButtonPush)();
+    void (*onButtonToggle)(bool state);
+
+    bool isPressed() {
+        return digitalRead(pinId) == LOW;
+    }
+
+    void _onButtonPush()
+    {
+        if (onButtonPush != nullptr)
             onButtonPush();
-        
+
         isToggled = !isToggled;
-        if(onButtonToggle != nullptr)
+        if (onButtonToggle != nullptr)
             onButtonToggle(isToggled);
     }
 
+    void debouncedClick()
+    {
+        if (!awaitingDebounce)
+        {
+            if (isPressed())
+            {
+                awaitingDebounce = true;
+                debounceMillis = millis();
+            }
+        }
+        else
+        {
+            if (millis() - debounceMillis < DEBOUNCE_MILLIS)
+                return;
+
+            awaitingDebounce = false;
+
+            if (isPressed())
+            {
+                isCurrentlyClicked = true;
+                _onButtonPush();
+            }
+        }
+    }
+
+    void debouncedUnClick()
+    {
+        if (!awaitingDebounce)
+        {
+            if (!isPressed())
+            {
+                awaitingDebounce = true;
+                debounceMillis = millis();
+            }
+        }
+        else
+        {
+            if (millis() - debounceMillis < DEBOUNCE_MILLIS)
+                return;
+
+            if (!isPressed())
+            {
+                isCurrentlyClicked = false;
+                awaitingDebounce = false;
+            }
+        }
+    }
+
 public:
-    ButtonController() {
+    ButtonController(pin pinId, void (*onButtonPush)(), void (*onButtonToggle)(bool state))
+    {
         pinMode(pinId, INPUT_PULLUP);
-        attachInterrupt(
-            digitalPinToInterrupt(pinId),
-            (&_onButtonPush),
-            FALLING
-        );
+        this->pinId = pinId;
+        isToggled = false;
+        isCurrentlyClicked = false;
+
+        this->onButtonPush = onButtonPush;
+        this->onButtonToggle = onButtonToggle;
     };
 
-    static bool getIsPressed()
+    void Tick()
     {
-        return digitalRead(pinId);
-    }
-
-    static bool getIsToggled()
-    {
-        return isToggled;
+        if (isCurrentlyClicked)
+        {
+            debouncedUnClick();
+        }
+        else
+        {
+            debouncedClick();
+        }
     }
 };
-
-template <pin pinId, void (*onButtonPush)(), void (*onButtonToggle)(bool state)>
-bool ButtonController<pinId, onButtonPush, onButtonToggle>::isToggled = false;

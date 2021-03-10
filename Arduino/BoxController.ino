@@ -12,6 +12,8 @@ auto fanController = FanController<FAN_READ_PIN, FAN_WRITE_PIN>(0);
 auto ledController = LedController<LED_BUILTIN>();
 
 auto ledStrip = LedStripController<LED_STRIP_PIN, LED_STRIP_LENGTH>();
+auto fanButton = ButtonController(BUTTON_TOGGLE_FANS, nullptr, setFanState);
+auto lightButton = ButtonController(BUTTON_TOGGLE_LIGHT, switchLightStripIntensity, nullptr);
 
 void setFanState(bool state) {
   if(state) {

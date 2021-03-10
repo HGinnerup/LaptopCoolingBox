@@ -18,13 +18,14 @@ class FanController
         
         rpm = getRpm(timeDiff);
 
-
-        // uint32_t microsDiff = micros() - microsAtFalling;
         millisAtRpmUpdate = millis();
 
-        // rpm = getRpm(microsDiff);
-        if(onRpmUpdated != nullptr)
+        static bool first = true;
+
+        if(!first && onRpmUpdated != nullptr)
             onRpmUpdated(rpm);
+        
+        first = false;
     }
 
 public:

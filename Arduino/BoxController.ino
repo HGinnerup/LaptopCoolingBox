@@ -2,8 +2,8 @@
 
 #define DEBUG
 
-#define FAN_READ_PIN 3
-#define FAN_WRITE_PIN 4
+#define FAN_READ_PIN 2
+#define FAN_WRITE_PIN 3
 
 #define LED_STRIP_PIN 5
 #define LED_STRIP_LENGTH 23

@@ -2,7 +2,7 @@
 
 #include "BoxController.h"
 
-#define DEBOUNCE_MILLIS 50
+#define DEBOUNCE_MILLIS 5
 
 class ButtonController
 {

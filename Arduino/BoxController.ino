@@ -16,28 +16,27 @@
 #define FAN_BUTTON_DECREMENT_PIN 11
 
 #ifdef DEBUG
-    #define DEBUG_PRINT_BUTTON
+#define DEBUG_PRINT_BUTTON
 #endif
-
 
 void ledStripOnRpmUpdate(uint16_t rpm);
 auto fanController = FanController<FAN_READ_PIN, FAN_WRITE_PIN, ledStripOnRpmUpdate>(0);
 
 void fanModeIterate();
-auto fanButtonMode = ButtonController(FAN_BUTTON_MODE_PIN, fanModeIterate, nullptr);
+auto fanButtonMode = ButtonController(FAN_BUTTON_MODE_PIN, fanModeIterate);
 void fanIncrement();
-auto fanButtonIncrement = ButtonController(FAN_BUTTON_INCREMENT_PIN, fanIncrement, nullptr);
+auto fanButtonIncrement = ButtonController(FAN_BUTTON_INCREMENT_PIN, fanIncrement);
 void fanDecrement();
-auto fanButtonDecrement = ButtonController(FAN_BUTTON_DECREMENT_PIN, fanDecrement, nullptr);
+auto fanButtonDecrement = ButtonController(FAN_BUTTON_DECREMENT_PIN, fanDecrement);
 
 auto ledStrip = LedStripController<LED_STRIP_PIN, LED_STRIP_LENGTH>();
 
 void ledModeIterate();
-auto ledButtonMode = ButtonController(LED_BUTTON_MODE_PIN, ledModeIterate, nullptr);
+auto ledButtonMode = ButtonController(LED_BUTTON_MODE_PIN, ledModeIterate);
 void ledIncrement();
-auto ledButtonIncrement = ButtonController(LED_BUTTON_INCREMENT_PIN, ledIncrement, nullptr);
+auto ledButtonIncrement = ButtonController(LED_BUTTON_INCREMENT_PIN, ledIncrement);
 void ledDecrement();
-auto ledButtonDecrement = ButtonController(LED_BUTTON_DECREMENT_PIN, ledDecrement, nullptr);
+auto ledButtonDecrement = ButtonController(LED_BUTTON_DECREMENT_PIN, ledDecrement);
 
 auto ledBuiltin = LedController(LED_BUILTIN);
 
@@ -58,14 +57,14 @@ void fanModeIterate() {}
 void fanIncrement()
 {
     uint8_t currentPower = fanController.getPowerTarget();
-    if (currentPower < 255-32)
+    if (currentPower < 255 - 32)
         fanController.setPower(currentPower + 32);
     else
         fanController.setPower(255);
-    #ifdef DEBUG_PRINT_BUTTON
-        Serial.print("FanPowerIncrementTo: ");
-        Serial.println(fanController.getPowerTarget());
-    #endif
+#ifdef DEBUG_PRINT_BUTTON
+    Serial.print("FanPowerIncrementTo: ");
+    Serial.println(fanController.getPowerTarget());
+#endif
 }
 void fanDecrement()
 {
@@ -74,24 +73,24 @@ void fanDecrement()
         fanController.setPower(currentPower - 32);
     else
         fanController.setPower(0);
-    #ifdef DEBUG_PRINT_BUTTON
-        Serial.print("FanPowerDecrementTo: ");
-        Serial.println(fanController.getPowerTarget());
-    #endif
+#ifdef DEBUG_PRINT_BUTTON
+    Serial.print("FanPowerDecrementTo: ");
+    Serial.println(fanController.getPowerTarget());
+#endif
 }
 
 void ledModeIterate() {}
 void ledIncrement()
 {
     uint8_t currentPower = ledStrip.getBrightness();
-    if (currentPower < 255-32)
+    if (currentPower < 255 - 32)
         ledStrip.setBrightness(currentPower + 32);
     else
         ledStrip.setBrightness(255);
-    #ifdef DEBUG_PRINT_BUTTON
-        Serial.print("LedPowerIncrementTo: ");
-        Serial.println(ledStrip.getBrightness());
-    #endif
+#ifdef DEBUG_PRINT_BUTTON
+    Serial.print("LedPowerIncrementTo: ");
+    Serial.println(ledStrip.getBrightness());
+#endif
 }
 void ledDecrement()
 {
@@ -100,10 +99,10 @@ void ledDecrement()
         ledStrip.setBrightness(currentPower - 32);
     else
         ledStrip.setBrightness(0);
-    #ifdef DEBUG_PRINT_BUTTON
-        Serial.print("LedPowerDecrementTo: ");
-        Serial.println(ledStrip.getBrightness());
-    #endif
+#ifdef DEBUG_PRINT_BUTTON
+    Serial.print("LedPowerDecrementTo: ");
+    Serial.println(ledStrip.getBrightness());
+#endif
 }
 
 void setup()

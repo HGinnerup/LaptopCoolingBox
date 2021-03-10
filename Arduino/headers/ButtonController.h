@@ -7,26 +7,15 @@
 class ButtonController
 {
     pin pinId;
-    bool isToggled;
     bool awaitingDebounce;
     uint32_t debounceMillis;
     bool isCurrentlyClicked;
 
     void (*onButtonPush)();
-    void (*onButtonToggle)(bool state);
 
-    bool isPressed() {
-        return digitalRead(pinId) == LOW;
-    }
-
-    void _onButtonPush()
+    bool isPressed()
     {
-        if (onButtonPush != nullptr)
-            onButtonPush();
-
-        isToggled = !isToggled;
-        if (onButtonToggle != nullptr)
-            onButtonToggle(isToggled);
+        return digitalRead(pinId) == LOW;
     }
 
     void debouncedClick()
@@ -49,7 +38,7 @@ class ButtonController
             if (isPressed())
             {
                 isCurrentlyClicked = true;
-                _onButtonPush();
+                onButtonPush();
             }
         }
     }
@@ -82,11 +71,9 @@ public:
     {
         pinMode(pinId, INPUT_PULLUP);
         this->pinId = pinId;
-        isToggled = false;
         isCurrentlyClicked = false;
 
         this->onButtonPush = onButtonPush;
-        this->onButtonToggle = onButtonToggle;
     };
 
     void Tick()

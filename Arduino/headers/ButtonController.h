@@ -67,7 +67,7 @@ class ButtonController
     }
 
 public:
-    ButtonController(pin pinId, void (*onButtonPush)(), void (*onButtonToggle)(bool state))
+    ButtonController(pin pinId, void (*onButtonPush)())
     {
         pinMode(pinId, INPUT_PULLUP);
         this->pinId = pinId;

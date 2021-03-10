@@ -8,13 +8,13 @@
 #define LED_STRIP_PIN 7
 #define LED_STRIP_LENGTH 50
 
-auto fanController = FanController<FAN_READ_PIN, FAN_WRITE_PIN>(0);
-auto ledController = LedController<LED_BUILTIN>();
-
 auto ledStrip = LedStripController<LED_STRIP_PIN, LED_STRIP_LENGTH>();
 void ledStripOnRpmUpdate(uint16_t rpm);
 auto fanController = FanController<FAN_READ_PIN, FAN_WRITE_PIN, ledStripOnRpmUpdate>(0);
+auto ledController = LedController(LED_BUILTIN);
+void setFanState(bool state);
 auto fanButton = ButtonController(BUTTON_TOGGLE_FANS, nullptr, setFanState);
+void switchLightStripIntensity();
 auto lightButton = ButtonController(BUTTON_TOGGLE_LIGHT, switchLightStripIntensity, nullptr);
 
 
@@ -39,45 +39,20 @@ void setFanState(bool state) {
     fanController.setPower(0);
   }
 }
-auto fanButton = ButtonController<BUTTON_TOGGLE_FANS, nullptr, setFanState>();
-
-uint8_t lightStripIntencity = 0;
 void switchLightStripIntensity() {
   lightStripIntencity += 32;
 }
-void setLightStripState(bool state) {
-  if(state) {
-    ledStrip.setColor(1, CRGB(255, 0, 0));
-    ledStrip.Show();
-  }
-  else {
-    ledStrip.setColor(1, CRGB(0, 0, 0));
-    ledStrip.Show();
-  }
-}
-auto lightButton = ButtonController<BUTTON_TOGGLE_LIGHT, switchLightStripIntensity, nullptr>();
 
 
 
 void setup()
 {
-  Serial.begin(115200);
+  Serial.begin(1000000);
 }
 
 void loop()
 {
-  static int i = 0;
-  i++;
-  
-  uint16_t rpm = fanController.getRpm();
-  Serial.print(i);
-  Serial.print(", Rpm: ");
-  Serial.println(rpm);
-
-  uint8_t hue = 255*2000/rpm-200;
-  CHSV hsv = CHSV(hue, 255, lightStripIntencity);
-  for(int i=0; i<LED_STRIP_LENGTH; i++)
-    ledStrip.setColor(i, CRGB(hsv));
-  ledStrip.Show();
+  fanButton.Tick();
+  lightButton.Tick();
 
 }

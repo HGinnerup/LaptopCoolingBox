@@ -17,6 +17,7 @@
 
 #ifdef DEBUG
 #define DEBUG_PRINT_BUTTON
+#define DEBUG_PRINT_RPM
 #endif
 
 void ledStripOnRpmUpdate(uint16_t rpm);
@@ -45,6 +46,13 @@ void ledStripOnRpmUpdate(uint16_t rpm)
 {
     static uint16_t rpmLerped = rpm;
     rpmLerped = rpmLerped + (rpm >> 3) - (rpmLerped >> 3);
+
+    #ifdef DEBUG_PRINT_RPM
+        Serial.print("RPM: ");
+        Serial.print(rpm);
+        Serial.print("; Lerped RPM:");
+        Serial.println(rpmLerped);
+    #endif
 
     uint8_t hue = map(rpmLerped, 200, 1900, 0, 255);
     CHSV hsv = CHSV(hue, 255, 255);

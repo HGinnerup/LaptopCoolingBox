@@ -1,6 +1,5 @@
 #include "headers/BoxController.h"
 
-
 #define FAN_READ_PIN 3
 #define FAN_WRITE_PIN 4
 #define BUTTON_TOGGLE_FANS 5
@@ -17,33 +16,40 @@ auto fanButton = ButtonController(BUTTON_TOGGLE_FANS, nullptr, setFanState);
 void switchLightStripIntensity();
 auto lightButton = ButtonController(BUTTON_TOGGLE_LIGHT, switchLightStripIntensity, nullptr);
 
-
 uint8_t lightStripIntencity = 64;
-void ledStripOnRpmUpdate(uint16_t rpm) {
-  uint8_t hue = 255*2000/rpm-200;
+void ledStripOnRpmUpdate(uint16_t rpm)
+{
+  static uint16_t rpmLerped = rpm;
+  rpmLerped = rpmLerped + (rpm >> 3) - (rpmLerped >> 3);
+
+  uint8_t hue = map(rpmLerped, 200, 1900, 0, 255);
   CHSV hsv = CHSV(hue, 255, lightStripIntencity);
-  for(int i=0; i<LED_STRIP_LENGTH; i++)
+  for (int i = 0; i < LED_STRIP_LENGTH; i++)
     ledStrip.setColor(i, CRGB(hsv));
   ledStrip.Show();
 
   Serial.print("Rpm: ");
   Serial.println(rpm);
+  Serial.print("RpmLerped: ");
+  Serial.println(rpmLerped);
 }
-void setFanState(bool state) {
-  if(state) {
+void setFanState(bool state)
+{
+  if (state)
+  {
     ledController.turnOn();
     fanController.setPower(255);
   }
-  else {
+  else
+  {
     ledController.turnOff();
     fanController.setPower(0);
   }
 }
-void switchLightStripIntensity() {
+void switchLightStripIntensity()
+{
   lightStripIntencity += 32;
 }
-
-
 
 void setup()
 {
@@ -54,5 +60,4 @@ void loop()
 {
   fanButton.Tick();
   lightButton.Tick();
-
 }

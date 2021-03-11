@@ -24,14 +24,14 @@ class LedStripController
     BaseAnimation *currentAnimation;
     uint32_t indicatorStartTime;
     uint16_t indicatorDurationMs;
-    
+
 public:
     LedStripController(uint16_t indicatorTimeMs = 1000)
     {
         FastLED.addLeds<NEOPIXEL, dataPin>(leds, ledCount);
         ledStrip = LedStrip(leds, ledCount);
-        ledStrip.leds = leds;
-        ledStrip.ledCount = ledCount;
+        // ledStrip.leds = leds;
+        // ledStrip.ledCount = ledCount;
         state = LedStripStates::Off;
         indicatorDurationMs = indicatorTimeMs;
     }
@@ -44,6 +44,8 @@ public:
     void setBrightness(uint8_t amount)
     {
         ledStrip.setBrightness(amount);
+        if(currentAnimation != nullptr)
+            currentAnimation->forceDraw();
     }
     uint8_t getBrightness()
     {
@@ -68,7 +70,8 @@ public:
 
     void displayIndicator(CRGB color, uint8_t width = UINT8_MAX)
     {
-        if(state != LedStripStates::Indicator) {
+        if (state != LedStripStates::Indicator)
+        {
             preIndicatorState = state;
             state = LedStripStates::Indicator;
         }
@@ -85,9 +88,14 @@ public:
         }
         ledStrip.Show();
     }
-    void indicatorTick() {
-        if(millis() - indicatorStartTime >= indicatorDurationMs) {
-            state = preIndicatorState;
+    void indicatorTick()
+    {
+        if (millis() - indicatorStartTime >= indicatorDurationMs)
+        {
+            if (state == LedStripStates::Animation)
+                setAnimation(currentAnimation);
+            else
+                state = preIndicatorState;
         }
     }
 
@@ -95,6 +103,8 @@ public:
     {
         this->currentAnimation = animation;
         this->state = LedStripStates::Animation;
+        currentAnimation->forceDraw();
+        currentAnimation->tick();
     }
     BaseAnimation *getAnimation()
     {

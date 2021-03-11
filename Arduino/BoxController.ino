@@ -41,7 +41,16 @@ auto ledButtonDecrement = ButtonController(LED_BUTTON_DECREMENT_PIN, ledDecremen
 
 auto ledBuiltin = LedController(LED_BUILTIN);
 
-auto ledStripRpmHue = LedStripRpmHue(ledStrip.getLedStrip(), 60, 200);
+// LedStrip Animations
+const uint8_t fps = 60;
+auto ledStripRpmHue = LedStripRpmHue(ledStrip.getLedStrip(), fps, 200);
+auto ledStripWhite = LedStripSolidColor(ledStrip.getLedStrip(), CRGB(255, 255, 255));
+auto ledStripHueFade = LedStripHueFade(ledStrip.getLedStrip(), fps, 0);
+
+BaseAnimation* ledAnimationPointers[] = {
+    &ledStripRpmHue,
+    &ledStripWhite,
+    &ledStripHueFade};
 
 // Function Implementations
 void ledStripOnRpmUpdate(uint16_t rpm)
@@ -92,7 +101,19 @@ void fanDecrement()
 #endif
 }
 
-void ledModeIterate() {}
+void ledModeIterate()
+{
+    static uint8_t ledMode = 0;
+    ledMode++;
+    ledMode = ledMode % 3;
+
+#ifdef DEBUG_PRINT_BUTTON
+    Serial.print("ledModeIterateTo: ");
+    Serial.println(ledMode);
+#endif
+
+    ledStrip.setAnimation(ledAnimationPointers[ledMode]);
+}
 void ledIncrement()
 {
     ledStrip.increaseBrightness(32);

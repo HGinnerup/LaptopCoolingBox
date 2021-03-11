@@ -44,6 +44,9 @@ public:
             this->drawInterval = 1000 / fps;
         }
     }
+    void forceDraw() {
+        draw();
+    }
     void tick()
     {
         if (drawTimer())

@@ -9,4 +9,4 @@
 #include "LedStripController.h"
 #include "ButtonController.h"
 
-#include "LedStripAnimations/LedStripRpmHue.h"
+#include "LedStripAnimations/animations.h"

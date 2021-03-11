@@ -4,44 +4,114 @@
 #include "FastLED.h"
 
 #include "BoxController.h"
+#include "LedStrip.h"
+#include "LedStripAnimations/baseAnimation.h"
+
+enum LedStripStates
+{
+    Off,
+    Indicator,
+    Animation
+};
 
 template <pin dataPin, int ledCount>
 class LedStripController
 {
+    LedStrip ledStrip;
     CRGB leds[ledCount];
+    LedStripStates state;
+    BaseAnimation *currentAnimation;
+    uint32_t indicatorStartTime;
+    uint16_t indicatorDelayMs;
 
 public:
-    LedStripController()
+    LedStripController(uint16_t indicatorTimeMs = 1000)
     {
         FastLED.addLeds<NEOPIXEL, dataPin>(leds, ledCount);
+        ledStrip = LedStrip(leds, ledCount);
+        ledStrip.leds = leds;
+        ledStrip.ledCount = ledCount;
+        state = LedStripStates::Off;
+        indicatorDelayMs = indicatorTimeMs;
     }
 
+    LedStrip *getLedStrip()
+    {
+        return &ledStrip;
+    }
+
+    void setBrightness(uint8_t amount)
+    {
+        ledStrip.setBrightness(amount);
+    }
     uint8_t getBrightness()
     {
-        return FastLED.getBrightness();
+        return ledStrip.getBrightness();
+    }
+    void increaseBrightness(uint8_t amount)
+    {
+        uint8_t currentPower = getBrightness();
+        if (currentPower < 255 - amount)
+            setBrightness(currentPower + amount);
+        else
+            setBrightness(255);
+    }
+    void decreaseBrightness(uint8_t amount)
+    {
+        uint8_t currentPower = getBrightness();
+        if (currentPower > amount)
+            setBrightness(currentPower - amount);
+        else
+            setBrightness(0);
     }
 
-    void setBrightness(uint8_t brightness)
+    void displayIndicator(CRGB color, uint8_t width = UINT8_MAX)
     {
-        FastLED.setBrightness(brightness);
-    }
+        state = LedStripStates::Indicator;
+        indicatorStartTime = millis();
 
-    void setColor(CRGB color)
-    {
-        //FastLED.showColor(color);
-        for (int i = 0; i < ledCount; i++)
+        int ledsToLightUp = ledCount * width / UINT8_MAX;
+        for (int i = 0; i < ledsToLightUp; i++)
+        {
             setColor(i, color);
+        }
+        for (int i = ledsToLightUp; i < ledCount; i++)
+        {
+            setColor(i, CRGB(0, 0, 0));
+        }
     }
-    void setColor(int index, CRGB color)
+
+    void setAnimation(BaseAnimation *animation)
     {
-        leds[index] = color;
+        this->currentAnimation = animation;
+        this->state = LedStripStates::Animation;
     }
-    CRGB getColor(int index)
+    BaseAnimation *getAnimation()
     {
-        return leds[index];
+        return currentAnimation;
     }
-    void Show()
+
+    void turnOff()
     {
-        FastLED.show();
+        state = LedStripStates::Off;
+        ledStrip.setColor(CRGB(0, 0, 0));
+        ledStrip.Show();
+    }
+
+    void tick()
+    {
+        switch (state)
+        {
+        case LedStripStates::Off:
+            break;
+        case LedStripStates::Animation:
+            getAnimation()->tick();
+            break;
+        case LedStripStates::Indicator:
+            break;
+
+        default:
+            break;
+        }
     }
 };

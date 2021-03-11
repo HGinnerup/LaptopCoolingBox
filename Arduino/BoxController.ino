@@ -41,24 +41,21 @@ auto ledButtonDecrement = ButtonController(LED_BUTTON_DECREMENT_PIN, ledDecremen
 
 auto ledBuiltin = LedController(LED_BUILTIN);
 
+auto ledStripRpmHue = LedStripRpmHue(ledStrip.getLedStrip(), 60, 200);
+
 // Function Implementations
 void ledStripOnRpmUpdate(uint16_t rpm)
 {
     static uint16_t rpmLerped = rpm;
-    rpmLerped = rpmLerped + (rpm >> 3) - (rpmLerped >> 3);
+    rpmLerped = rpmLerped + (rpm >> 4) - (rpmLerped >> 4);
+    ledStripRpmHue.setRpm(rpmLerped);
 
-    #ifdef DEBUG_PRINT_RPM
-        Serial.print("RPM: ");
-        Serial.print(rpm);
-        Serial.print("; Lerped RPM:");
-        Serial.println(rpmLerped);
-    #endif
-
-    uint8_t hue = map(rpmLerped, 200, 1900, 0, 255);
-    CHSV hsv = CHSV(hue, 255, 255);
-
-    ledStrip.setColor(CRGB(hsv));
-    ledStrip.Show();
+#ifdef DEBUG_PRINT_RPM
+    Serial.print("RPM: ");
+    Serial.print(rpm);
+    Serial.print("; Lerped RPM:");
+    Serial.println(rpmLerped);
+#endif
 }
 
 void fanModeIterate() {}
@@ -90,11 +87,7 @@ void fanDecrement()
 void ledModeIterate() {}
 void ledIncrement()
 {
-    uint8_t currentPower = ledStrip.getBrightness();
-    if (currentPower < 255 - 32)
-        ledStrip.setBrightness(currentPower + 32);
-    else
-        ledStrip.setBrightness(255);
+    ledStrip.increaseBrightness(32);
 #ifdef DEBUG_PRINT_BUTTON
     Serial.print("LedPowerIncrementTo: ");
     Serial.println(ledStrip.getBrightness());
@@ -102,11 +95,7 @@ void ledIncrement()
 }
 void ledDecrement()
 {
-    uint8_t currentPower = ledStrip.getBrightness();
-    if (currentPower > 32)
-        ledStrip.setBrightness(currentPower - 32);
-    else
-        ledStrip.setBrightness(0);
+    ledStrip.decreaseBrightness(32);
 #ifdef DEBUG_PRINT_BUTTON
     Serial.print("LedPowerDecrementTo: ");
     Serial.println(ledStrip.getBrightness());
@@ -116,6 +105,7 @@ void ledDecrement()
 void setup()
 {
     ledStrip.setBrightness(32);
+    ledStrip.setAnimation(&ledStripRpmHue);
     Serial.begin(1000000);
 }
 
@@ -128,4 +118,6 @@ void loop()
     ledButtonMode.Tick();
     ledButtonIncrement.Tick();
     ledButtonDecrement.Tick();
+
+    ledStrip.tick();
 }

@@ -6,17 +6,15 @@ class LedStripSolidColor : public BaseAnimation
 {
     CRGB color;
 
-protected:
-    void draw()
-    {
-        ledStrip->setColor(color);
-        ledStrip->Show();
-    }
-
 public:
     LedStripSolidColor(LedStrip *ledStrip, CRGB color) : BaseAnimation(ledStrip, 0)
     {
         this->color = color;
+    }
+
+    void setLedColors()
+    {
+        ledStrip->setColor(color);
     }
 
     void setColor(CRGB color)

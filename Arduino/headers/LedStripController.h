@@ -24,14 +24,13 @@ class LedStripController
     BaseAnimation *currentAnimation;
     uint32_t indicatorStartTime;
     uint16_t indicatorDurationMs;
+    uint8_t indicatorPreviousBrightness;
 
 public:
     LedStripController(uint16_t indicatorTimeMs = 1000)
     {
         FastLED.addLeds<NEOPIXEL, dataPin>(leds, ledCount);
         ledStrip = LedStrip(leds, ledCount);
-        // ledStrip.leds = leds;
-        // ledStrip.ledCount = ledCount;
         state = LedStripStates::Off;
         indicatorDurationMs = indicatorTimeMs;
     }
@@ -44,8 +43,7 @@ public:
     void setBrightness(uint8_t amount)
     {
         ledStrip.setBrightness(amount);
-        if(currentAnimation != nullptr)
-            currentAnimation->forceDraw();
+        ledStrip.Show();
     }
     uint8_t getBrightness()
     {
@@ -74,14 +72,26 @@ public:
         {
             preIndicatorState = state;
             state = LedStripStates::Indicator;
+            indicatorPreviousBrightness = getBrightness();
+            if (indicatorPreviousBrightness < 32)
+                ledStrip.setBrightness(32);
         }
         indicatorStartTime = millis();
 
         int ledsToLightUp = ledCount * width / UINT8_MAX;
-        for (int i = 0; i < ledsToLightUp; i++)
+
+        if (currentAnimation != nullptr)
         {
-            ledStrip.setColor(i, color);
+            currentAnimation->setLedColors();
         }
+        else
+        {
+            for (int i = 0; i < ledsToLightUp; i++)
+            {
+                ledStrip.setColor(i, color);
+            }
+        }
+
         for (int i = ledsToLightUp; i < ledCount; i++)
         {
             ledStrip.setColor(i, CRGB(0, 0, 0));
@@ -92,6 +102,7 @@ public:
     {
         if (millis() - indicatorStartTime >= indicatorDurationMs)
         {
+            setBrightness(indicatorPreviousBrightness);
             if (state == LedStripStates::Animation)
                 setAnimation(currentAnimation);
             else
@@ -103,8 +114,8 @@ public:
     {
         this->currentAnimation = animation;
         this->state = LedStripStates::Animation;
-        currentAnimation->forceDraw();
-        currentAnimation->tick();
+        currentAnimation->setLedColors();
+        ledStrip.Show();
     }
     BaseAnimation *getAnimation()
     {

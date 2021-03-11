@@ -28,7 +28,11 @@ protected:
         lastDraw = millis();
         setFps(fps);
     }
-    virtual void draw() {};
+    void draw()
+    {
+        setLedColors();
+        ledStrip->Show();
+    };
 
 public:
     void setFps(uint8_t fps)
@@ -44,9 +48,10 @@ public:
             this->drawInterval = 1000 / fps;
         }
     }
-    void forceDraw() {
-        draw();
+    virtual void setLedColors()
+    {
     }
+
     void tick()
     {
         if (drawTimer())

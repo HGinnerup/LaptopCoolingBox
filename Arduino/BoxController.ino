@@ -61,26 +61,34 @@ void ledStripOnRpmUpdate(uint16_t rpm)
 void fanModeIterate() {}
 void fanIncrement()
 {
-    uint8_t currentPower = fanController.getPowerTarget();
-    if (currentPower < 255 - 32)
-        fanController.setPower(currentPower + 32);
+    uint8_t power = fanController.getPowerTarget();
+    if (power < 255 - 32)
+        power += 32;
     else
-        fanController.setPower(255);
+        power = 255;
+
+    fanController.setPower(power);
+    ledStrip.displayIndicator(CRGB(0, 255, 0), power);
+
 #ifdef DEBUG_PRINT_BUTTON
     Serial.print("FanPowerIncrementTo: ");
-    Serial.println(fanController.getPowerTarget());
+    Serial.println(power);
 #endif
 }
 void fanDecrement()
 {
-    uint8_t currentPower = fanController.getPowerTarget();
-    if (currentPower > 32)
-        fanController.setPower(currentPower - 32);
+    uint8_t power = fanController.getPowerTarget();
+    if (power > 32)
+        power -= 32;
     else
-        fanController.setPower(0);
+        power = 0;
+
+    fanController.setPower(power);
+    ledStrip.displayIndicator(CRGB(0, 255, 0), power);
+
 #ifdef DEBUG_PRINT_BUTTON
     Serial.print("FanPowerDecrementTo: ");
-    Serial.println(fanController.getPowerTarget());
+    Serial.println(power);
 #endif
 }
 

@@ -20,10 +20,11 @@ class LedStripController
     LedStrip ledStrip;
     CRGB leds[ledCount];
     LedStripStates state;
+    LedStripStates preIndicatorState;
     BaseAnimation *currentAnimation;
     uint32_t indicatorStartTime;
-    uint16_t indicatorDelayMs;
-
+    uint16_t indicatorDurationMs;
+    
 public:
     LedStripController(uint16_t indicatorTimeMs = 1000)
     {
@@ -32,7 +33,7 @@ public:
         ledStrip.leds = leds;
         ledStrip.ledCount = ledCount;
         state = LedStripStates::Off;
-        indicatorDelayMs = indicatorTimeMs;
+        indicatorDurationMs = indicatorTimeMs;
     }
 
     LedStrip *getLedStrip()
@@ -67,17 +68,26 @@ public:
 
     void displayIndicator(CRGB color, uint8_t width = UINT8_MAX)
     {
-        state = LedStripStates::Indicator;
+        if(state != LedStripStates::Indicator) {
+            preIndicatorState = state;
+            state = LedStripStates::Indicator;
+        }
         indicatorStartTime = millis();
 
         int ledsToLightUp = ledCount * width / UINT8_MAX;
         for (int i = 0; i < ledsToLightUp; i++)
         {
-            setColor(i, color);
+            ledStrip.setColor(i, color);
         }
         for (int i = ledsToLightUp; i < ledCount; i++)
         {
-            setColor(i, CRGB(0, 0, 0));
+            ledStrip.setColor(i, CRGB(0, 0, 0));
+        }
+        ledStrip.Show();
+    }
+    void indicatorTick() {
+        if(millis() - indicatorStartTime >= indicatorDurationMs) {
+            state = preIndicatorState;
         }
     }
 
@@ -108,6 +118,7 @@ public:
             getAnimation()->tick();
             break;
         case LedStripStates::Indicator:
+            indicatorTick();
             break;
 
         default:

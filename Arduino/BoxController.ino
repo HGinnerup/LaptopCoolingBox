@@ -77,7 +77,7 @@ void fanIncrement()
         power = 255;
 
     fanController.setPower(power);
-    ledStrip.displayIndicator(CRGB(0, 255, 0), power);
+    ledStrip.displayIndicator(nullptr, power);
 
 #ifdef DEBUG_PRINT_BUTTON
     Serial.print("FanPowerIncrementTo: ");
@@ -93,7 +93,7 @@ void fanDecrement()
         power = 0;
 
     fanController.setPower(power);
-    ledStrip.displayIndicator(CRGB(0, 255, 0), power);
+    ledStrip.displayIndicator(nullptr, power);
 
 #ifdef DEBUG_PRINT_BUTTON
     Serial.print("FanPowerDecrementTo: ");

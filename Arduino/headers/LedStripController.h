@@ -25,6 +25,8 @@ class LedStripController
     uint32_t indicatorStartTime;
     uint16_t indicatorDurationMs;
     uint8_t indicatorPreviousBrightness;
+    uint8_t indicatorWidth;
+    CRGB *indicatorColor;
 
 public:
     LedStripController(uint16_t indicatorTimeMs = 1000)
@@ -66,7 +68,7 @@ public:
             setBrightness(0);
     }
 
-    void displayIndicator(CRGB color, uint8_t width = UINT8_MAX)
+    void displayIndicator(CRGB *color, uint8_t width = UINT8_MAX)
     {
         if (state != LedStripStates::Indicator)
         {
@@ -78,9 +80,15 @@ public:
         }
         indicatorStartTime = millis();
 
-        int ledsToLightUp = ledCount * width / UINT8_MAX;
+        indicatorWidth = width;
+        indicatorColor = color;
+        drawIndicator();
+    }
+    void drawIndicator()
+    {
+        int ledsToLightUp = ledCount * indicatorWidth / UINT8_MAX;
 
-        if (currentAnimation != nullptr)
+        if (indicatorColor == nullptr && currentAnimation != nullptr)
         {
             currentAnimation->setLedColors();
         }
@@ -88,7 +96,7 @@ public:
         {
             for (int i = 0; i < ledsToLightUp; i++)
             {
-                ledStrip.setColor(i, color);
+                ledStrip.setColor(i, *indicatorColor);
             }
         }
 
@@ -107,6 +115,16 @@ public:
                 setAnimation(currentAnimation);
             else
                 state = preIndicatorState;
+        }
+        else
+        {
+            if (currentAnimation != nullptr)
+            {
+                if (currentAnimation->getShouldDraw())
+                {
+                    drawIndicator();
+                }
+            }
         }
     }
 

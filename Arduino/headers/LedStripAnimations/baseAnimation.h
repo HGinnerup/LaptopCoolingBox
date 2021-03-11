@@ -10,18 +10,6 @@ class BaseAnimation
 
 protected:
     LedStrip *ledStrip;
-    bool drawTimer()
-    {
-        if (!shouldDraw)
-            return false;
-        uint32_t ms = millis();
-        if (ms - lastDraw > drawInterval)
-        {
-            lastDraw = ms;
-            return true;
-        }
-        return false;
-    }
     BaseAnimation(LedStrip *ledStrip, uint8_t fps = 60)
     {
         this->ledStrip = ledStrip;
@@ -30,11 +18,19 @@ protected:
     }
     void draw()
     {
+        lastDraw = millis();
         setLedColors();
         ledStrip->Show();
     };
 
 public:
+    bool getShouldDraw()
+    {
+        if (!shouldDraw)
+            return false;
+        return millis() - lastDraw > drawInterval;
+    }
+
     void setFps(uint8_t fps)
     {
         if (fps == 0)
@@ -48,13 +44,11 @@ public:
             this->drawInterval = 1000 / fps;
         }
     }
-    virtual void setLedColors()
-    {
-    }
+    virtual void setLedColors() {}
 
     void tick()
     {
-        if (drawTimer())
+        if (getShouldDraw())
             draw();
     }
 };

@@ -13,11 +13,13 @@ class ButtonController
 
     void (*onButtonPush)();
 
+public:
     bool isPressed()
     {
         return digitalRead(pinId) == LOW;
     }
 
+private:
     void debouncedClick()
     {
         if (!awaitingDebounce)

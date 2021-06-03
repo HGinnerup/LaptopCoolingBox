@@ -1,6 +1,12 @@
-#include "headers/BoxController.h"
-
 #define DEBUG
+
+#ifdef DEBUG
+#define DEBUG_PRINT_BUTTON
+//#define DEBUG_PRINT_RPM
+#define DEBUG_PRINT_TABLEHEIGHT
+#endif
+
+#include "headers/BoxController.h"
 
 #define FAN_READ_PIN 2
 #define FAN_WRITE_PIN 3
@@ -11,14 +17,12 @@
 #define LED_BUTTON_INCREMENT_PIN 6
 #define LED_BUTTON_DECREMENT_PIN 8
 
-#define FAN_BUTTON_MODE_PIN 10
+#define FAN_BUTTON_MODE_PIN 4
 #define FAN_BUTTON_INCREMENT_PIN 9
 #define FAN_BUTTON_DECREMENT_PIN 11
 
-#ifdef DEBUG
-#define DEBUG_PRINT_BUTTON
-#define DEBUG_PRINT_RPM
-#endif
+#define TABLE_HEIGHT_RAISE_PIN 12
+#define TABLE_HEIGHT_LOWER_PIN 13
 
 void ledStripOnRpmUpdate(uint16_t rpm);
 auto fanController = FanController<FAN_READ_PIN, FAN_WRITE_PIN, ledStripOnRpmUpdate>(0);
@@ -38,6 +42,8 @@ void ledIncrement();
 auto ledButtonIncrement = ButtonController(LED_BUTTON_INCREMENT_PIN, ledIncrement);
 void ledDecrement();
 auto ledButtonDecrement = ButtonController(LED_BUTTON_DECREMENT_PIN, ledDecrement);
+
+auto tableHeightController = TableHeightController(TABLE_HEIGHT_RAISE_PIN, TABLE_HEIGHT_LOWER_PIN);
 
 auto ledBuiltin = LedController(LED_BUILTIN);
 
@@ -67,38 +73,51 @@ void ledStripOnRpmUpdate(uint16_t rpm)
 #endif
 }
 
-void fanModeIterate() {}
+void fanModeIterate() {
+    #ifdef DEBUG_PRINT_BUTTON
+        Serial.println("fanModeIterate");
+    #endif
+}
 void fanIncrement()
 {
-    uint8_t power = fanController.getPowerTarget();
-    if (power < 255 - 32)
-        power += 32;
-    else
-        power = 255;
+    if(fanButtonMode.isPressed()) {
+        tableHeightController.raise(500);
+    }
+    else {
+        uint8_t power = fanController.getPowerTarget();
+        if (power < 255 - 32)
+            power += 32;
+        else
+            power = 255;
 
-    fanController.setPower(power);
-    ledStrip.displayIndicator(nullptr, power);
-
-#ifdef DEBUG_PRINT_BUTTON
-    Serial.print("FanPowerIncrementTo: ");
-    Serial.println(power);
-#endif
+        fanController.setPower(power);
+        ledStrip.displayIndicator(nullptr, power);
+        #ifdef DEBUG_PRINT_BUTTON
+            Serial.print("FanPowerIncrementTo: ");
+            Serial.println(power);
+        #endif
+    }
 }
 void fanDecrement()
-{
-    uint8_t power = fanController.getPowerTarget();
-    if (power > 32)
-        power -= 32;
-    else
-        power = 0;
+{    
+    if(fanButtonMode.isPressed()) {
+        tableHeightController.lower(500);
+    }
+    else {
+        uint8_t power = fanController.getPowerTarget();
+        if (power > 32)
+            power -= 32;
+        else
+            power = 0;
 
-    fanController.setPower(power);
-    ledStrip.displayIndicator(nullptr, power);
+        fanController.setPower(power);
+        ledStrip.displayIndicator(nullptr, power);
 
-#ifdef DEBUG_PRINT_BUTTON
-    Serial.print("FanPowerDecrementTo: ");
-    Serial.println(power);
-#endif
+        #ifdef DEBUG_PRINT_BUTTON
+            Serial.print("FanPowerDecrementTo: ");
+            Serial.println(power);
+        #endif
+    }
 }
 
 void ledModeIterate()
@@ -147,6 +166,8 @@ void loop()
     ledButtonMode.Tick();
     ledButtonIncrement.Tick();
     ledButtonDecrement.Tick();
+
+    tableHeightController.tick();
 
     ledStrip.tick();
 }

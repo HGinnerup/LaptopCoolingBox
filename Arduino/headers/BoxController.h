@@ -8,5 +8,6 @@
 #include "LedController.h"
 #include "LedStripController.h"
 #include "ButtonController.h"
+#include "TableHeightController.h"
 
 #include "LedStripAnimations/animations.h"

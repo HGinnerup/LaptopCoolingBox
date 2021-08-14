@@ -12,6 +12,7 @@ class ButtonController
     bool isCurrentlyClicked;
 
     void (*onButtonPush)();
+    void (*onButtonRelease)();
 
 public:
     bool isPressed()
@@ -40,7 +41,8 @@ private:
             if (isPressed())
             {
                 isCurrentlyClicked = true;
-                onButtonPush();
+                if(onButtonPush != nullptr) 
+                    onButtonPush();
             }
         }
     }
@@ -64,18 +66,21 @@ private:
             {
                 isCurrentlyClicked = false;
                 awaitingDebounce = false;
+                if(onButtonRelease != nullptr) 
+                    onButtonRelease();
             }
         }
     }
 
 public:
-    ButtonController(pin pinId, void (*onButtonPush)())
+    ButtonController(pin pinId, void (*onButtonPush)(), void (*onButtonRelease)() = nullptr)
     {
         pinMode(pinId, INPUT_PULLUP);
         this->pinId = pinId;
         isCurrentlyClicked = false;
 
         this->onButtonPush = onButtonPush;
+        this->onButtonRelease = onButtonRelease;
     };
 
     void Tick()

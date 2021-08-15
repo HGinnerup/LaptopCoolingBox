@@ -133,9 +133,11 @@ void ledModeIterate()
 
     ledStrip.setAnimation(ledAnimationPointers[ledMode]);
 }
+uint8_t brightness = 32;
 void ledIncrement()
 {
-    ledStrip.increaseBrightness(32);
+    brightness = min(255, brightness+32);
+    ledStrip.setBrightness(brightness*brightness/255);
 #ifdef DEBUG_PRINT_BUTTON
     Serial.print("LedPowerIncrementTo: ");
     Serial.println(ledStrip.getBrightness());
@@ -143,7 +145,8 @@ void ledIncrement()
 }
 void ledDecrement()
 {
-    ledStrip.decreaseBrightness(32);
+    brightness = max(0, brightness-32);
+    ledStrip.setBrightness(brightness*brightness/255);
 #ifdef DEBUG_PRINT_BUTTON
     Serial.print("LedPowerDecrementTo: ");
     Serial.println(ledStrip.getBrightness());
@@ -152,7 +155,7 @@ void ledDecrement()
 
 void setup()
 {
-    ledStrip.setBrightness(32);
+    ledStrip.setBrightness(brightness);
     ledStrip.setAnimation(&ledStripRpmHue);
     Serial.begin(1000000);
 }

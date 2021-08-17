@@ -15,7 +15,7 @@ class TableHeightController {
         pin tableLowerPinId;
 
         unsigned long lastActionMillis;
-        int lastActionDuration;
+        unsigned long lastActionDuration;
 
         states state;
 
@@ -28,11 +28,19 @@ class TableHeightController {
             this->state = states::idle;
         }
 
-        void raise(int ms) {
+        void beginRaise() {
             digitalWrite(tableRaisePinId, HIGH);
             digitalWrite(tableLowerPinId, LOW);
             this->state = states::raising;
             this->lastActionMillis = millis();
+            this->lastActionDuration = -1;
+            #ifdef DEBUG_PRINT_TABLEHEIGHT
+                Serial.println("BeginRaiseTable");
+            #endif
+        }
+
+        void raise(int ms) {
+            this->beginRaise();
             this->lastActionDuration = ms;
             #ifdef DEBUG_PRINT_TABLEHEIGHT
                 Serial.print("RaiseTable: ");
@@ -40,12 +48,20 @@ class TableHeightController {
                 Serial.println("ms");
             #endif
         }
-        
-        void lower(int ms) {
+
+        void beginLower() {
             digitalWrite(tableRaisePinId, LOW);
             digitalWrite(tableLowerPinId, HIGH);
             this->state = states::lowering;
             this->lastActionMillis = millis();
+            this->lastActionDuration = -1;
+            #ifdef DEBUG_PRINT_TABLEHEIGHT
+                Serial.println("BeginLowerTable");
+            #endif
+        }
+        
+        void lower(int ms) {
+            this->beginLower();
             this->lastActionDuration = ms;
             #ifdef DEBUG_PRINT_TABLEHEIGHT
                 Serial.print("LowerTable: ");

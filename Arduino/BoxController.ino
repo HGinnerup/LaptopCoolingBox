@@ -29,10 +29,11 @@ auto fanController = FanController<FAN_READ_PIN, FAN_WRITE_PIN, ledStripOnRpmUpd
 
 void fanModeIterate();
 auto fanButtonMode = ButtonController(FAN_BUTTON_MODE_PIN, fanModeIterate);
+void fanBtnRelease();
 void fanIncrement();
-auto fanButtonIncrement = ButtonController(FAN_BUTTON_INCREMENT_PIN, fanIncrement);
+auto fanButtonIncrement = ButtonController(FAN_BUTTON_INCREMENT_PIN, fanIncrement, fanBtnRelease);
 void fanDecrement();
-auto fanButtonDecrement = ButtonController(FAN_BUTTON_DECREMENT_PIN, fanDecrement);
+auto fanButtonDecrement = ButtonController(FAN_BUTTON_DECREMENT_PIN, fanDecrement, fanBtnRelease);
 
 auto ledStrip = LedStripController<LED_STRIP_PIN, LED_STRIP_LENGTH>();
 
@@ -81,7 +82,7 @@ void fanModeIterate() {
 void fanIncrement()
 {
     if(fanButtonMode.isPressed()) {
-        tableHeightController.raise(500);
+        tableHeightController.beginRaise();
     }
     else {
         uint8_t power = fanController.getPowerTarget();
@@ -101,7 +102,7 @@ void fanIncrement()
 void fanDecrement()
 {    
     if(fanButtonMode.isPressed()) {
-        tableHeightController.lower(500);
+        tableHeightController.beginLower();
     }
     else {
         uint8_t power = fanController.getPowerTarget();
@@ -118,6 +119,9 @@ void fanDecrement()
             Serial.println(power);
         #endif
     }
+}
+void fanBtnRelease() {
+    tableHeightController.stopMovement();
 }
 
 void ledModeIterate()
